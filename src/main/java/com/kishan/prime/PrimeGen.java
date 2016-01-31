@@ -5,12 +5,14 @@ import java.math.BigInteger;
 
 import okhttp3.Cache;
 import okhttp3.CacheControl;
+import okhttp3.Interceptor;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
+// TODO: Auto-generated Javadoc
 /**
  * The Class PrimeGen.
  */
@@ -21,28 +23,39 @@ public class PrimeGen
 	private final OkHttpClient client; 
 
 	/** The one. */
-	private final BigInteger one = new BigInteger("1");
+	private static final BigInteger ONE = new BigInteger("1");
 
 	/** The zero. */
-	private final BigInteger zero = new BigInteger("0");
+	private static final BigInteger ZERO = new BigInteger("0");
 
 	/** The Constant TEXT. */
-	public static final MediaType TEXT = MediaType.parse("text/plain; charset=utf-8");
+	private static final MediaType TEXT = MediaType.parse("text/plain; charset=utf-8");
 
 	/** The cache directory. */
-	private final File cacheDirectory = new File("cache");
+	private static final File CACHE_DIRECTORY = new File("cache");
+	
+	/** The Constant CACHE_SIZE. */
+	private static final long CACHE_SIZE = 1024 * 1024 * 1024; // 1 GiB
 
-	/** The cache size. */
-	private final int cacheSize = 1024 * 1024 * 1024; // 1 GiB
+	/** The Constant REWRITE_CACHE_CONTROL_INTERCEPTOR. */
+	private static final Interceptor REWRITE_CACHE_CONTROL_INTERCEPTOR = new Interceptor() {
+		@Override public Response intercept(Chain chain) throws IOException {
+			Response originalResponse = chain.proceed(chain.request());
+			return originalResponse.newBuilder()
+					.header("Cache-Control", "max-age=31536000") // 1 year
+					.build();
+		}
+	};
 
 	/**
 	 * Instantiates a new prime gen.
 	 */
 	public PrimeGen()
 	{
-		Cache cache = new Cache(cacheDirectory, cacheSize);
+		Cache cache = new Cache(CACHE_DIRECTORY, CACHE_SIZE);
 		client = new OkHttpClient.Builder()
 				.cache(cache)
+				.addNetworkInterceptor(REWRITE_CACHE_CONTROL_INTERCEPTOR)
 				.build();
 	}
 
@@ -55,14 +68,14 @@ public class PrimeGen
 	public void generate(BigInteger noOfPrimesMore) throws IOException
 	{
 		BigInteger largestPrime = fetchLargestPrime();
-		for(BigInteger nextVal = largestPrime.add(one); noOfPrimesMore.compareTo(zero) > 0; nextVal = nextVal.add(one)){
+		for(BigInteger nextVal = largestPrime.add(ONE); noOfPrimesMore.compareTo(ZERO) > 0; nextVal = nextVal.add(ONE)){
 			if(isPrime(nextVal)){
 				push(String.format("{\"%s\":true}", nextVal),"https://primes.firebaseio.com/primalitytest.json");
 				write(String.format("\"%s\"", nextVal), "https://primes.firebaseio.com/largestprime.json");
-				BigInteger i = fetchNoOfPrimes().add(one);
+				BigInteger i = fetchNoOfPrimes().add(ONE);
 				push(String.format("{\"%s\":\"%s\"}", i, nextVal), "https://primes.firebaseio.com/ithprime.json");
 				write(String.format("\"%s\"", i), "https://primes.firebaseio.com/noofprimes.json");
-				noOfPrimesMore = noOfPrimesMore.subtract(one);
+				noOfPrimesMore = noOfPrimesMore.subtract(ONE);
 			}else{
 				push(String.format("{\"%s\":false}", nextVal),"https://primes.firebaseio.com/primalitytest.json");
 			}
@@ -79,12 +92,12 @@ public class PrimeGen
 	private boolean isPrime(BigInteger value) throws IOException
 	{
 		boolean isPrime = true;
-		for(BigInteger i = one; true; i = i.add(one)){
+		for(BigInteger i = ONE; true; i = i.add(ONE)){
 			BigInteger primeVal = fetchIthPrime(i);
 			if(primeVal.multiply(primeVal).compareTo(value) > 0){
 				break;
 			}
-			if(value.mod(primeVal).equals(zero)){
+			if(value.mod(primeVal).equals(ZERO)){
 				isPrime = false;
 				break;
 			}
