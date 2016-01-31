@@ -1,7 +1,10 @@
 package com.kishan.prime;
+import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
 
+import okhttp3.Cache;
+import okhttp3.CacheControl;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -15,7 +18,7 @@ public class PrimeGen
 {
 
 	/** The client. */
-	private final OkHttpClient client = new OkHttpClient(); 
+	private final OkHttpClient client; 
 
 	/** The one. */
 	private final BigInteger one = new BigInteger("1");
@@ -25,6 +28,23 @@ public class PrimeGen
 
 	/** The Constant TEXT. */
 	public static final MediaType TEXT = MediaType.parse("text/plain; charset=utf-8");
+
+	/** The cache directory. */
+	private final File cacheDirectory = new File("cache");
+
+	/** The cache size. */
+	private final int cacheSize = 1024 * 1024 * 1024; // 1 GiB
+
+	/**
+	 * Instantiates a new prime gen.
+	 */
+	public PrimeGen()
+	{
+		Cache cache = new Cache(cacheDirectory, cacheSize);
+		client = new OkHttpClient.Builder()
+				.cache(cache)
+				.build();
+	}
 
 	/**
 	 * Generate.
@@ -76,15 +96,18 @@ public class PrimeGen
 	 * Gets the URL data.
 	 *
 	 * @param url the url
+	 * @param cache the cache
 	 * @return the URL data
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
-	private String getURLData(String url) throws IOException 
+	private String getURLData(String url, boolean cache) throws IOException 
 	{
-		Request request = new Request.Builder()
-				.url(url)
-				.build();
-
+		Request.Builder requestBuilder = new Request.Builder()
+				.url(url);
+		if(!cache){
+			requestBuilder.cacheControl(CacheControl.FORCE_NETWORK);
+		}
+		Request request = requestBuilder.build();
 		Response response = client.newCall(request).execute();
 		return response.body().string().replaceAll("\"", "").trim();
 	}
@@ -107,7 +130,7 @@ public class PrimeGen
 		Response response = client.newCall(request).execute();
 		return response.body().string();		
 	}
-	
+
 	/**
 	 * Push.
 	 *
@@ -136,7 +159,7 @@ public class PrimeGen
 	 */
 	private BigInteger fetchLargestPrime() throws IOException
 	{
-		return new BigInteger(getURLData("https://primes.firebaseio.com/largestprime.json"));
+		return new BigInteger(getURLData("https://primes.firebaseio.com/largestprime.json", false));
 	}
 
 	/**
@@ -147,7 +170,7 @@ public class PrimeGen
 	 */
 	private BigInteger fetchNoOfPrimes() throws IOException
 	{		
-		return new BigInteger(getURLData("https://primes.firebaseio.com/noofprimes.json"));
+		return new BigInteger(getURLData("https://primes.firebaseio.com/noofprimes.json", false));
 	}
 
 	/**
@@ -159,7 +182,7 @@ public class PrimeGen
 	 */
 	private BigInteger fetchIthPrime(BigInteger i) throws IOException
 	{
-		return new BigInteger(getURLData(String.format("https://primes.firebaseio.com/ithprime/%s.json", i.toString())));
+		return new BigInteger(getURLData(String.format("https://primes.firebaseio.com/ithprime/%s.json", i.toString()), true));
 	}
 
 }
