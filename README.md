@@ -29,11 +29,11 @@
   ```
 
 # Installation (For developers)
-  1) Clone the repo.
-  2) mvn clean package assembly:single 
-  3) cd target
-  4) java -jar Prime-<<Version>>-jar-with-dependencies.jar
+  1. Clone the repo.
+  2. mvn clean package assembly:single 
+  3. cd target
+  4. java -jar Prime-<<Version>>-jar-with-dependencies.jar
   
 # System Requirements (For developers)
-  1) java 1.7
-  2) maven 3
+  1. java 1.7
+  2. maven 3
