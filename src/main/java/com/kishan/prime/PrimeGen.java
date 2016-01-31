@@ -71,14 +71,14 @@ public class PrimeGen
 		BigInteger noOfPrimes = fetchNoOfPrimes();
 		for(BigInteger nextVal = largestPrime.add(ONE); noOfPrimesMore.compareTo(ZERO) > 0; nextVal = nextVal.add(ONE)){
 			if(isPrime(nextVal)){
-				push(String.format("{\"%s\":true}", nextVal),"https://primes.firebaseio.com/primalitytest.json");
-				write(String.format("\"%s\"", nextVal), "https://primes.firebaseio.com/largestprime.json");
+				push(String.format("{\"%s\":true}", nextVal),"https://primes.firebaseio.com/primalitytest.json?print=silent");
+				write(String.format("\"%s\"", nextVal), "https://primes.firebaseio.com/largestprime.json?print=silent");
 				noOfPrimes = noOfPrimes.add(ONE);
-				push(String.format("{\"%s\":\"%s\"}", noOfPrimes, nextVal), "https://primes.firebaseio.com/ithprime.json");
-				write(String.format("\"%s\"", noOfPrimes), "https://primes.firebaseio.com/noofprimes.json");
+				push(String.format("{\"%s\":\"%s\"}", noOfPrimes, nextVal), "https://primes.firebaseio.com/ithprime.json?print=silent");
+				write(String.format("\"%s\"", noOfPrimes), "https://primes.firebaseio.com/noofprimes.json?print=silent");
 				noOfPrimesMore = noOfPrimesMore.subtract(ONE);
 			}else{
-				push(String.format("{\"%s\":false}", nextVal),"https://primes.firebaseio.com/primalitytest.json");
+				push(String.format("{\"%s\":false}", nextVal),"https://primes.firebaseio.com/primalitytest.json?print=silent");
 			}
 		}
 	}
@@ -131,10 +131,9 @@ public class PrimeGen
 	 *
 	 * @param data the data
 	 * @param url the url
-	 * @return the string
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
-	private String write(String data, String url) throws IOException
+	private void write(String data, String url) throws IOException
 	{
 		RequestBody body = RequestBody.create(TEXT, data);
 		Request request = new Request.Builder()
@@ -142,7 +141,7 @@ public class PrimeGen
 				.put(body)
 				.build();
 		Response response = client.newCall(request).execute();
-		return response.body().string();		
+		response.body().close();
 	}
 
 	/**
@@ -150,10 +149,9 @@ public class PrimeGen
 	 *
 	 * @param data the data
 	 * @param url the url
-	 * @return the string
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
-	private String push(String data, String url) throws IOException
+	private void push(String data, String url) throws IOException
 	{
 		RequestBody body = RequestBody.create(TEXT, data);
 		Request request = new Request.Builder()
@@ -161,7 +159,7 @@ public class PrimeGen
 				.patch(body)
 				.build();
 		Response response = client.newCall(request).execute();
-		return response.body().string();		
+		response.body().close();	
 	}
 
 
