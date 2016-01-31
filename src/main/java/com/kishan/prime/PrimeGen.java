@@ -68,13 +68,14 @@ public class PrimeGen
 	public void generate(BigInteger noOfPrimesMore) throws IOException
 	{
 		BigInteger largestPrime = fetchLargestPrime();
+		BigInteger noOfPrimes = fetchNoOfPrimes();
 		for(BigInteger nextVal = largestPrime.add(ONE); noOfPrimesMore.compareTo(ZERO) > 0; nextVal = nextVal.add(ONE)){
 			if(isPrime(nextVal)){
 				push(String.format("{\"%s\":true}", nextVal),"https://primes.firebaseio.com/primalitytest.json");
 				write(String.format("\"%s\"", nextVal), "https://primes.firebaseio.com/largestprime.json");
-				BigInteger i = fetchNoOfPrimes().add(ONE);
-				push(String.format("{\"%s\":\"%s\"}", i, nextVal), "https://primes.firebaseio.com/ithprime.json");
-				write(String.format("\"%s\"", i), "https://primes.firebaseio.com/noofprimes.json");
+				noOfPrimes = noOfPrimes.add(ONE);
+				push(String.format("{\"%s\":\"%s\"}", noOfPrimes, nextVal), "https://primes.firebaseio.com/ithprime.json");
+				write(String.format("\"%s\"", noOfPrimes), "https://primes.firebaseio.com/noofprimes.json");
 				noOfPrimesMore = noOfPrimesMore.subtract(ONE);
 			}else{
 				push(String.format("{\"%s\":false}", nextVal),"https://primes.firebaseio.com/primalitytest.json");
