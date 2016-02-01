@@ -5,6 +5,8 @@ import java.math.BigInteger;
 
 import okhttp3.Cache;
 import okhttp3.CacheControl;
+import okhttp3.Call;
+import okhttp3.Callback;
 import okhttp3.Interceptor;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -140,8 +142,21 @@ public class PrimeGen
 				.url(url)
 				.put(body)
 				.build();
-		Response response = client.newCall(request).execute();
-		response.body().close();
+		client.newCall(request).enqueue(new Callback() {
+			
+			@Override
+			public void onResponse(Call call, Response response) throws IOException
+			{
+				response.body().close();
+			}
+			
+			@Override
+			public void onFailure(Call call, IOException e)
+			{
+				e.printStackTrace();
+			}
+		});
+		
 	}
 
 	/**
@@ -158,8 +173,20 @@ public class PrimeGen
 				.url(url)
 				.patch(body)
 				.build();
-		Response response = client.newCall(request).execute();
-		response.body().close();	
+		client.newCall(request).enqueue(new Callback() {
+			@Override
+			public void onResponse(Call call, Response response) throws IOException
+			{
+				response.body().close();
+			}
+			
+			@Override
+			public void onFailure(Call call, IOException e)
+			{
+				e.printStackTrace();
+			}
+		});
+			
 	}
 
 
